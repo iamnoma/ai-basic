@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>매일 체크리스트</title>
+<!-- Wanted Sans 글꼴 (설치 필요 없음, 인터넷에서 자동으로 받아옵니다) -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/split/WantedSans.css">
+<style>
+  * { box-sizing: border-box; }
+  /* 버튼과 입력창은 글꼴을 저절로 물려받지 않아서 따로 지정합니다 */
+  button, input, textarea { font-family: inherit; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #f2f4f7;
+    font-family: "Wanted Sans", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: 16px;
+    color: #222;
+  }
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  h1 {
+    font-size: 24px;
+    text-align: center;
+    margin: 10px 0 4px;
+  }
+  .date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .nav-btn {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    font-size: 16px;
+    border: none;
+    border-radius: 10px;
+    background: #e7eaef;
+    color: #444;
+    cursor: pointer;
+  }
+  .nav-btn:active { background: #d5d9e0; }
+  .nav-btn:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  .date-center {
+    min-width: 200px;
+    text-align: center;
+  }
+  .today {
+    font-size: 15px;
+    color: #555;
+  }
+  .date-tag {
+    font-size: 13px;
+    font-weight: bold;
+    color: #2f6feb;
+    min-height: 18px;
+  }
+  .back-today-btn {
+    display: none;
+    margin: 0 auto 12px;
+    font-size: 14px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 10px;
+    background: #ffe9a8;
+    color: #7a5a00;
+    cursor: pointer;
+  }
+  /* 과거 날짜를 보고 있을 때만 나타납니다 */
+  body.viewing-past .back-today-btn { display: block; }
+  body.viewing-past .date-tag { color: #b07800; }
+  body.viewing-past .item { background: #fffdf3; }
+  .add-box {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    margin-bottom: 24px;
+  }
+  .add-box input[type="text"] {
+    flex: 1;
+    font-size: 16px;
+    padding: 12px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+  }
+  .add-box button {
+    font-size: 16px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 10px;
+    background: #2f6feb;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .add-box button:active { background: #1e54c2; }
+
+  .item {
+    background: white;
+    border-radius: 14px;
+    padding: 8px 12px 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  /* 카드에서 이 부분(체크박스+이름+횟수) 어디를 눌러도 체크됩니다 */
+  .item-main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 44px;
+    padding: 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .item-main:active { background: #f0f2f5; }
+  .item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+    position: relative;
+  }
+  .item input[type="checkbox"]:checked {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #ff7fac;
+    border-radius: 5px;
+  }
+  .item input[type="checkbox"]:checked::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    font-weight: 900;
+    color: #ffffff;
+  }
+  .item .name {
+    flex: 1;
+    font-size: 17px;
+    word-break: break-all;
+  }
+  .item.done .name {
+    color: #999;
+    text-decoration: line-through;
+  }
+  .item .month-count {
+    font-size: 13px;
+    background: #ffe9f0;
+    color: #c2426f;
+    padding: 6px 8px;
+    border-radius: 8px;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* 한 달치 네모 줄 (보기 전용)
+     --cols(한 줄), --cols-half(두 줄로 나눌 때) 값은 코드에서 넣어줍니다 */
+  .month-strip {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    column-gap: 2px;
+    row-gap: 3px;
+    width: 100%;
+    margin-top: 8px;
+  }
+  .day-cell {
+    min-width: 0;
+    aspect-ratio: 1 / 1;
+    border-radius: 2px;
+    border: 1px solid transparent;
+  }
+  .day-cell.done   { background: #ff7fac; }              /* 체크한 날 */
+  .day-cell.miss   { background: #e0e4ea; }              /* 안 한 날 */
+  .day-cell.future { background: transparent;            /* 아직 안 온 날 */
+                     border-color: #d3d8e0; }
+  .day-cell.is-selected {                                /* 지금 보고 있는 날 */
+    outline: 2px solid #2f6feb;
+    outline-offset: 1px;
+  }
+  .item .del-btn {
+    font-size: 16px;
+    background: #ffecec;
+    color: #e33;
+    border: none;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .item .del-btn:active { background: #ffd6d6; }
+
+  .empty {
+    text-align: center;
+    color: #999;
+    font-size: 18px;
+    margin-top: 40px;
+  }
+
+  /* 화면이 좁아 네모가 너무 작아지면 두 줄로 나눕니다 */
+  @media (max-width: 460px) {
+    .month-strip { grid-template-columns: repeat(var(--cols-half), 1fr); }
+  }
+
+  @media (max-width: 400px) {
+    body { font-size: 15px; }
+    h1 { font-size: 22px; }
+    .item .name { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>✅ 매일 체크리스트</h1>
+
+  <div class="date-nav">
+    <button class="nav-btn" id="prevDayBtn" title="이전 날">◀</button>
+    <div class="date-center">
+      <div class="today" id="todayLabel"></div>
+      <div class="date-tag" id="dateTag"></div>
+    </div>
+    <button class="nav-btn" id="nextDayBtn" title="다음 날">▶</button>
+  </div>
+  <button class="back-today-btn" id="backTodayBtn">오늘로 돌아가기</button>
+
+  <div class="add-box">
+    <input type="text" id="newItemInput" placeholder="예: 약 먹기, 운동, 물 마시기">
+    <button id="addBtn">추가</button>
+  </div>
+
+  <div id="itemList"></div>
+  <div class="empty" id="emptyMsg" style="display:none;">아직 항목이 없어요. 위에서 추가해보세요!</div>
+</div>
+
+<script>
+  const STORAGE_KEY = "dailyChecklistData";
+
+  function loadData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try { return JSON.parse(raw); } catch (e) { /* fall through */ }
+    }
+    // 처음 실행할 때 예시 항목 넣어주기
+    return {
+      items: [
+        { id: "sample1", name: "약 먹기" },
+        { id: "sample2", name: "운동" },
+        { id: "sample3", name: "물 마시기" }
+      ],
+      records: {}
+    };
+  }
+
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let data = loadData();
+
+  function formatDateKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function getTodayKey() {
+    return formatDateKey(new Date());
+  }
+
+  // "2026-08-04" 같은 글자를 다시 날짜로 되돌립니다
+  function parseDateKey(key) {
+    const [y, m, d] = key.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+
+  let todayKey = getTodayKey();   // 진짜 오늘 (자정이 지나면 갱신됨)
+  let selectedKey = todayKey;     // 지금 화면에서 보고 있는 날짜
+
+  const WEEKDAY_KR = ["일", "월", "화", "수", "목", "금", "토"];
+
+  function renderTodayLabel() {
+    const d = parseDateKey(selectedKey);
+    const label = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${WEEKDAY_KR[d.getDay()]})`;
+    document.getElementById("todayLabel").textContent = label;
+
+    // 오늘/어제면 알아보기 쉽게 표시해줍니다
+    const yesterday = parseDateKey(todayKey);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = formatDateKey(yesterday);
+
+    let tag = "";
+    if (selectedKey === todayKey) tag = "오늘";
+    else if (selectedKey === yesterdayKey) tag = "어제 (지난 날 채우는 중)";
+    else tag = "지난 날 채우는 중";
+    document.getElementById("dateTag").textContent = tag;
+
+    // 과거를 보고 있으면 배경을 살짝 바꾸고 "오늘로 돌아가기"를 띄웁니다
+    document.body.classList.toggle("viewing-past", selectedKey !== todayKey);
+    // 내일은 아직 오지 않았으니 못 넘어가게 막습니다
+    document.getElementById("nextDayBtn").disabled = (selectedKey === todayKey);
+  }
+
+  // 창을 켜둔 채 날짜가 바뀌었는지 확인합니다
+  function checkDateRollover() {
+    const nowKey = getTodayKey();
+    if (nowKey === todayKey) return;
+    const wasOnToday = (selectedKey === todayKey);
+    todayKey = nowKey;
+    if (wasOnToday) selectedKey = nowKey;  // 오늘을 보고 있었으면 새 오늘로 따라갑니다
+    renderTodayLabel();
+    renderList();
+  }
+
+  // 하루 앞/뒤로 이동 (미래로는 못 갑니다)
+  function shiftDay(delta) {
+    const d = parseDateKey(selectedKey);
+    d.setDate(d.getDate() + delta);
+    const key = formatDateKey(d);
+    if (key > todayKey) return;
+    selectedKey = key;
+    renderTodayLabel();
+    renderList();
+  }
+
+  // 보고 있는 달의 하루하루를 훑어서 { 날짜키, 상태 } 목록을 만듭니다
+  function getMonthDays(itemId) {
+    const base = parseDateKey(selectedKey);
+    const year = base.getFullYear();
+    const month = base.getMonth();
+    // 다음 달의 0일 = 이번 달 마지막 날 (28/29/30/31 자동 계산)
+    const lastDay = new Date(year, month + 1, 0).getDate();
+
+    const days = [];
+    for (let day = 1; day <= lastDay; day++) {
+      const key = formatDateKey(new Date(year, month, day));
+      let state;
+      if (key > todayKey) state = "future";                                  // 아직 안 온 날
+      else if (data.records[key] && data.records[key][itemId]) state = "done"; // 체크한 날
+      else state = "miss";                                                   // 안 한 날
+      days.push({ key, day, state });
+    }
+    return days;
+  }
+
+  function toggleCheck(itemId, checked) {
+    // 자정을 넘겼는데 아직 어제 화면을 보고 있었다면, 이 클릭은 무시하고 갱신만 합니다
+    const before = selectedKey;
+    checkDateRollover();
+    if (selectedKey !== before) return;
+
+    const key = selectedKey;  // 오늘이 아니라 "보고 있는 날짜"에 기록합니다
+    if (!data.records[key]) data.records[key] = {};
+    if (checked) {
+      data.records[key][itemId] = true;
+    } else {
+      delete data.records[key][itemId];
+    }
+    saveData();
+    renderList();
+  }
+
+  function addItem(name) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const id = "item_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    data.items.push({ id, name: trimmed });
+    saveData();
+    renderList();
+  }
+
+  function deleteItem(itemId) {
+    if (!confirm("이 항목을 삭제할까요? 기록도 함께 사라집니다.")) return;
+    data.items = data.items.filter(it => it.id !== itemId);
+    Object.keys(data.records).forEach(dateKey => {
+      delete data.records[dateKey][itemId];
+    });
+    saveData();
+    renderList();
+  }
+
+  function renderList() {
+    const viewKey = selectedKey;  // 지금 보고 있는 날짜 기준으로 그립니다
+    const listEl = document.getElementById("itemList");
+    const emptyMsg = document.getElementById("emptyMsg");
+    listEl.innerHTML = "";
+
+    if (data.items.length === 0) {
+      emptyMsg.style.display = "block";
+      return;
+    }
+    emptyMsg.style.display = "none";
+
+    data.items.forEach(item => {
+      const isChecked = !!(data.records[viewKey] && data.records[viewKey][item.id]);
+      const monthDays = getMonthDays(item.id);
+      const doneCount = monthDays.filter(d => d.state === "done").length;
+
+      const row = document.createElement("div");
+      row.className = "item" + (isChecked ? " done" : "");
+
+      const top = document.createElement("div");
+      top.className = "item-top";
+
+      // label로 감싸면 그 안쪽 아무 데나 눌러도 체크박스가 켜집니다
+      const main = document.createElement("label");
+      main.className = "item-main";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = isChecked;
+      checkbox.addEventListener("change", () => toggleCheck(item.id, checkbox.checked));
+
+      const nameSpan = document.createElement("div");
+      nameSpan.className = "name";
+      nameSpan.textContent = item.name;
+
+      const countSpan = document.createElement("div");
+      countSpan.className = "month-count";
+      countSpan.textContent = `✓ ${doneCount}일`;
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "del-btn";
+      delBtn.textContent = "×";
+      delBtn.title = "삭제";
+      delBtn.addEventListener("click", () => deleteItem(item.id));
+
+      main.appendChild(checkbox);
+      main.appendChild(nameSpan);
+      main.appendChild(countSpan);
+      top.appendChild(main);
+      top.appendChild(delBtn);
+
+      // 한 달치 네모 줄 (누르는 기능 없이 보기만)
+      const strip = document.createElement("div");
+      strip.className = "month-strip";
+      // 넓은 화면이면 한 줄, 좁으면 반으로 접어 두 줄 (31일 -> 16칸 + 15칸)
+      strip.style.setProperty("--cols", monthDays.length);
+      strip.style.setProperty("--cols-half", Math.ceil(monthDays.length / 2));
+      monthDays.forEach(d => {
+        const cell = document.createElement("div");
+        cell.className = "day-cell " + d.state + (d.key === selectedKey ? " is-selected" : "");
+        const month = parseDateKey(d.key).getMonth() + 1;
+        const label = d.state === "future" ? "아직 안 온 날"
+                    : d.state === "done"   ? "함"
+                    : "안 함";
+        cell.title = `${month}월 ${d.day}일 · ${label}`;
+        strip.appendChild(cell);
+      });
+
+      row.appendChild(top);
+      row.appendChild(strip);
+      listEl.appendChild(row);
+    });
+  }
+
+  document.getElementById("addBtn").addEventListener("click", () => {
+    const input = document.getElementById("newItemInput");
+    addItem(input.value);
+    input.value = "";
+    input.focus();
+  });
+
+  document.getElementById("newItemInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      document.getElementById("addBtn").click();
+    }
+  });
+
+  document.getElementById("prevDayBtn").addEventListener("click", () => shiftDay(-1));
+  document.getElementById("nextDayBtn").addEventListener("click", () => shiftDay(1));
+  document.getElementById("backTodayBtn").addEventListener("click", () => {
+    selectedKey = todayKey;
+    renderTodayLabel();
+    renderList();
+  });
+
+  // 날짜가 바뀌었는지 감시하는 세 가지 방법
+  setInterval(checkDateRollover, 30000);          // 30초마다 확인
+  window.addEventListener("focus", checkDateRollover);  // 창을 다시 클릭했을 때
+  document.addEventListener("visibilitychange", () => { // 탭을 다시 열었을 때
+    if (!document.hidden) checkDateRollover();
+  });
+
+  renderTodayLabel();
+  renderList();
+</script>
+</body>
+</html>

@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오늘의 유튜브 떡상 체크</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/packages/wanted-sans/fonts/webfonts/variable/split/WantedSansVariable.min.css" />
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #f2f4f7;
+    font-family: "Wanted Sans Variable", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    font-size: 16px;
+    color: #222;
+  }
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+  h1 {
+    font-size: 24px;
+    text-align: center;
+    margin: 10px 0 4px;
+  }
+  .today {
+    text-align: center;
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 4px;
+  }
+  .note {
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 22px;
+  }
+
+  .section-label {
+    font-size: 13px;
+    color: #777;
+    margin: 0 2px 8px;
+    font-weight: bold;
+  }
+
+  .api-box {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .api-box input {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+  }
+  .api-box button {
+    font-size: 14px;
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    background: #2f6feb;
+    color: white;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .api-box button:active { background: #1e54c2; }
+  .api-hint {
+    font-size: 11px;
+    color: #999;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .api-hint a { color: #2f6feb; }
+
+  .status-msg {
+    text-align: center;
+    font-size: 13px;
+    padding: 10px 0;
+  }
+  .status-msg.loading { color: #2f6feb; }
+  .status-msg.error { color: #e03131; }
+
+  .summary-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 22px;
+  }
+  .summary-item {
+    flex: 1;
+    min-width: 0;
+    background: white;
+    border-radius: 12px;
+    padding: 12px 10px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .summary-label {
+    font-size: 11px;
+    color: #667;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+  .summary-value {
+    font-size: 19px;
+    font-weight: bold;
+    color: #2f6feb;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .summary-sub {
+    font-size: 13px;
+    color: #444;
+    font-weight: 600;
+    margin-top: 6px;
+    padding-top: 5px;
+    border-top: 1px solid #eee;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .chip {
+    font-size: 14px;
+    padding: 9px 14px;
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    background: white;
+    color: #555;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: #2f6feb;
+    border-color: #2f6feb;
+    color: white;
+    font-weight: bold;
+  }
+
+  .sort-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .sort-btn {
+    flex: 1;
+    font-size: 15px;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    background: white;
+    color: #555;
+    cursor: pointer;
+    text-align: center;
+  }
+  .sort-btn.active {
+    background: #12b886;
+    border-color: #12b886;
+    color: white;
+    font-weight: bold;
+  }
+  .sort-btn .sub {
+    display: block;
+    font-size: 11px;
+    font-weight: normal;
+    margin-top: 2px;
+    opacity: 0.85;
+  }
+
+  .card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: white;
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .rank {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #eef1f6;
+    color: #667;
+    font-weight: bold;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .rank.top1 { background: #ffd54f; color: #5a4300; }
+  .rank.top2 { background: #cfd8dc; color: #37474f; }
+  .rank.top3 { background: #e6b17e; color: #4a2c00; }
+
+  .thumb {
+    flex-shrink: 0;
+    width: 96px;
+    height: 54px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+  }
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .info { flex: 1; min-width: 0; }
+
+  .title {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0 0 4px;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    text-decoration: none;
+    color: inherit;
+  }
+  .channel {
+    font-size: 12.5px;
+    color: #777;
+    margin-bottom: 6px;
+  }
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .tag-row {
+    margin-bottom: 4px;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 8px;
+    font-weight: bold;
+  }
+  .stat {
+    font-size: 12px;
+    color: #444;
+  }
+  .stat.highlight {
+    color: #0ca678;
+    font-weight: bold;
+  }
+  .time-ago {
+    font-size: 11px;
+    color: #aaa;
+  }
+
+  /* 1~3위 피처드 카드 (썸네일이 카드 상단 전체 폭을 차지하는 형태) */
+  .card.featured {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .card.featured .rank {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+  }
+  .card.featured .thumb {
+    width: 100%;
+    height: 0;
+    padding-bottom: 56.25%;
+    border-radius: 0;
+    position: relative;
+  }
+  .card.featured .thumb img {
+    position: absolute;
+    inset: 0;
+  }
+  .card.featured .body {
+    padding: 14px;
+  }
+  .card.featured .title {
+    font-size: 17px;
+  }
+
+  .empty {
+    text-align: center;
+    color: #999;
+    padding: 40px 0;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔥 오늘의 유튜브 떡상 체크</h1>
+  <div class="today" id="todayLabel"></div>
+  <div class="note" id="noteText"></div>
+
+  <div class="api-box">
+    <input type="password" id="apiKeyInput" placeholder="YouTube Data API 키 입력">
+    <button id="apiKeySaveBtn">저장하고 불러오기</button>
+  </div>
+  <div class="api-hint">키는 이 브라우저에만 저장되고 외부로 전송되지 않아요 · <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">API 키 발급 안내</a></div>
+
+  <div class="summary-bar" id="summaryBar"></div>
+
+  <div class="section-label">카테고리</div>
+  <div class="chip-row" id="categoryRow"></div>
+
+  <div class="section-label">정렬 기준</div>
+  <div class="sort-row" id="sortRow">
+    <button class="sort-btn" data-sort="views">
+      조회수순
+      <span class="sub">단순 조회수가 높은 순</span>
+    </button>
+    <button class="sort-btn" data-sort="ratio">
+      떡상지수순
+      <span class="sub">구독자 대비 조회수 배수</span>
+    </button>
+  </div>
+
+  <div class="status-msg" id="statusMsg"></div>
+  <div id="list"></div>
+</div>
+
+<script>
+  const CATEGORIES = [
+    { key: "all", label: "전체" },
+    { key: "news", label: "시사/이슈", color: "#495057", bg: "#eef0f2" },
+    { key: "music", label: "음악", color: "#2f6feb", bg: "#e8f0fe" },
+    { key: "game", label: "게임", color: "#2fa84f", bg: "#e6f7ea" },
+    { key: "vlog", label: "브이로그", color: "#12b886", bg: "#e3fcf3" }
+  ];
+
+  const CATEGORY_ICON = {
+    music: "🎧", game: "🎮", vlog: "📹", news: "📰"
+  };
+  const CATEGORY_BG = {
+    music: "linear-gradient(135deg,#a8c8ff,#2f6feb)",
+    game: "linear-gradient(135deg,#b8f2c9,#2fa84f)",
+    vlog: "linear-gradient(135deg,#99e9d2,#12b886)",
+    news: "linear-gradient(135deg,#dee2e6,#495057)"
+  };
+
+  // 유튜브 공식 videoCategoryId (검색어만으로는 분류가 부정확해서 공식 카테고리로 필터링)
+  const CATEGORY_YT_ID = {
+    music: "10", game: "20", vlog: "22", news: "25"
+  };
+  // 유튜브 검색 API는 검색어(q) 없이 카테고리/지역/기간만으로는 결과가 거의 안 나와서,
+  // 카테고리별로 OR로 묶은 여러 키워드를 검색어로 사용 (videoCategoryId와 함께 걸어 정확도 유지)
+  const CATEGORY_QUERY = {
+    music: "플레이리스트|뮤직비디오|무대|퍼포먼스",
+    game: "게임|플레이|공략|하이라이트",
+    vlog: "브이로그|일상|하루",
+    news: "이슈|뉴스|시사|속보"
+  };
+
+  const API_KEY_STORAGE_KEY = "ddeoksang_yt_api_key";
+  const SHORTS_MAX_SECONDS = 180; // 이 길이 이하는 쇼츠로 간주하고 제외
+
+  let VIDEOS = [];
+
+  function getStoredApiKey() {
+    return localStorage.getItem(API_KEY_STORAGE_KEY) || "";
+  }
+
+  function saveApiKey(key) {
+    localStorage.setItem(API_KEY_STORAGE_KEY, key);
+  }
+
+  function parseIsoDurationToSeconds(iso) {
+    if (!iso) return Infinity; // 진행 중인 라이브 방송 등 duration 값이 아예 없는 경우
+    const match = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+    if (!match) return Infinity; // 라이브 방송(P0D) 등 예외 형식은 쇼츠가 아닌 것으로 간주
+    const hours = Number(match[1] || 0);
+    const minutes = Number(match[2] || 0);
+    const seconds = Number(match[3] || 0);
+    return hours * 3600 + minutes * 60 + seconds;
+  }
+
+  function isLikelyShort(v) {
+    if (parseIsoDurationToSeconds(v.contentDetails.duration) <= SHORTS_MAX_SECONDS) return true;
+    // 쇼츠는 썸네일도 세로형(9:16)으로 내려오는 경우가 많아 화면비로도 한 번 더 거름
+    const thumb = v.snippet.thumbnails.maxres || v.snippet.thumbnails.high
+      || v.snippet.thumbnails.medium || v.snippet.thumbnails.default;
+    return !!thumb && thumb.height > thumb.width;
+  }
+
+  const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+  const TODAY_ONLY_START_HOUR_KST = 11; // 오전 11시부터 "오늘 업로드만"으로 전환
+
+  // 오전 11시(한국시간) 이전: 오늘자 업로드가 아직 적어서 롤링 24시간으로 보충
+  // 오전 11시 이후: 오늘(한국시간) 자정 이후 업로드만
+  function getPublishedAfterIso() {
+    const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+    if (nowKst.getUTCHours() < TODAY_ONLY_START_HOUR_KST) {
+      return new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    }
+    const midnightKstAsUtcMs = Date.UTC(nowKst.getUTCFullYear(), nowKst.getUTCMonth(), nowKst.getUTCDate()) - KST_OFFSET_MS;
+    return new Date(midnightKstAsUtcMs).toISOString();
+  }
+
+  async function fetchCategoryVideos(categoryKey, apiKey) {
+    const publishedAfter = getPublishedAfterIso();
+
+    const searchParams = {
+      part: "snippet", type: "video", order: "viewCount", maxResults: "25",
+      regionCode: "KR", relevanceLanguage: "ko",
+      videoCategoryId: CATEGORY_YT_ID[categoryKey],
+      publishedAfter, key: apiKey
+    };
+    if (CATEGORY_QUERY[categoryKey]) searchParams.q = CATEGORY_QUERY[categoryKey];
+
+    const searchUrl = "https://www.googleapis.com/youtube/v3/search?" + new URLSearchParams(searchParams);
+    const searchData = await (await fetch(searchUrl)).json();
+    if (searchData.error) throw new Error(searchData.error.message);
+
+    const videoIds = searchData.items.map(item => item.id.videoId).filter(Boolean);
+    if (videoIds.length === 0) return [];
+
+    const videosUrl = "https://www.googleapis.com/youtube/v3/videos?" + new URLSearchParams({
+      part: "snippet,statistics,contentDetails", id: videoIds.join(","), key: apiKey
+    });
+    const videosData = await (await fetch(videosUrl)).json();
+    if (videosData.error) throw new Error(videosData.error.message);
+
+    const longEnoughVideos = videosData.items.filter(v => !isLikelyShort(v));
+    if (longEnoughVideos.length === 0) return [];
+
+    const channelIds = [...new Set(longEnoughVideos.map(v => v.snippet.channelId))];
+    const channelsUrl = "https://www.googleapis.com/youtube/v3/channels?" + new URLSearchParams({
+      part: "statistics", id: channelIds.join(","), key: apiKey
+    });
+    const channelsData = await (await fetch(channelsUrl)).json();
+    if (channelsData.error) throw new Error(channelsData.error.message);
+
+    const subsByChannel = {};
+    channelsData.items.forEach(c => {
+      subsByChannel[c.id] = c.statistics.hiddenSubscriberCount ? null : Number(c.statistics.subscriberCount);
+    });
+
+    return longEnoughVideos.map(v => {
+      const subs = subsByChannel[v.snippet.channelId] ?? null;
+      const views = Number(v.statistics.viewCount || 0);
+      const hoursAgo = Math.max(0, Math.round((Date.now() - new Date(v.snippet.publishedAt).getTime()) / 3600000));
+      const thumbs = v.snippet.thumbnails;
+      return {
+        title: v.snippet.title,
+        channel: v.snippet.channelTitle,
+        category: categoryKey,
+        subs,
+        views,
+        hoursAgo,
+        ratio: subs ? views / subs : 0,
+        thumbnailUrl: (thumbs.high || thumbs.medium || thumbs.default).url
+      };
+    });
+  }
+
+  async function loadAllVideos() {
+    const statusEl = document.getElementById("statusMsg");
+    const apiKey = getStoredApiKey();
+
+    if (!apiKey) {
+      VIDEOS = [];
+      statusEl.textContent = "YouTube API 키를 입력하면 실시간 데이터를 불러옵니다.";
+      statusEl.className = "status-msg";
+      renderSummary();
+      renderList();
+      return;
+    }
+
+    statusEl.textContent = "실시간 데이터를 불러오는 중...";
+    statusEl.className = "status-msg loading";
+
+    const categoryKeys = CATEGORIES.filter(c => c.key !== "all").map(c => c.key);
+
+    try {
+      const results = await Promise.all(categoryKeys.map(key => fetchCategoryVideos(key, apiKey)));
+      VIDEOS = results.flat();
+      statusEl.textContent = "";
+      statusEl.className = "status-msg";
+    } catch (err) {
+      VIDEOS = [];
+      statusEl.textContent = `데이터를 불러오지 못했습니다: ${err.message}`;
+      statusEl.className = "status-msg error";
+    }
+
+    renderSummary();
+    renderList();
+  }
+
+  const TOP_N_ALL = 20;
+  const TOP_N_CATEGORY = 10;
+
+  let state = { category: "all", sort: "views" };
+
+  function formatCount(n) {
+    if (n >= 10000) {
+      return (n / 10000).toFixed(1) + "만";
+    }
+    return n.toLocaleString();
+  }
+
+  function youtubeSearchUrl(v) {
+    return "https://www.youtube.com/results?search_query=" + encodeURIComponent(`${v.title} ${v.channel}`);
+  }
+
+  function renderCategoryChips() {
+    const row = document.getElementById("categoryRow");
+    row.innerHTML = "";
+    CATEGORIES.forEach(c => {
+      const btn = document.createElement("button");
+      btn.className = "chip" + (state.category === c.key ? " active" : "");
+      btn.textContent = c.label;
+      btn.addEventListener("click", () => {
+        state.category = c.key;
+        renderCategoryChips();
+        renderSummary();
+        renderList();
+      });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderSortButtons() {
+    document.querySelectorAll(".sort-btn").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.sort === state.sort);
+      btn.onclick = () => {
+        state.sort = btn.dataset.sort;
+        renderSortButtons();
+        renderList();
+      };
+    });
+  }
+
+  function renderList() {
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+
+    if (VIDEOS.length === 0) return;
+
+    let items = VIDEOS.filter(v => state.category === "all" || v.category === state.category);
+    items = items.slice().sort((a, b) => {
+      if (state.sort === "views") return b.views - a.views;
+      return b.ratio - a.ratio;
+    });
+    const topN = state.category === "all" ? TOP_N_ALL : TOP_N_CATEGORY;
+    items = items.slice(0, topN);
+
+    if (items.length === 0) {
+      list.innerHTML = '<div class="empty">해당 카테고리에 표시할 영상이 없어요.</div>';
+      return;
+    }
+
+    items.forEach((v, idx) => {
+      const rank = idx + 1;
+      const isTop3 = rank <= 3;
+      const cat = CATEGORIES.find(c => c.key === v.category);
+
+      const card = document.createElement("div");
+      card.className = "card" + (isTop3 ? " featured" : "");
+
+      const rankEl = document.createElement("div");
+      rankEl.className = "rank" + (rank === 1 ? " top1" : rank === 2 ? " top2" : rank === 3 ? " top3" : "");
+      rankEl.textContent = rank;
+
+      const thumb = document.createElement("a");
+      thumb.className = "thumb";
+      thumb.target = "_blank";
+      thumb.rel = "noopener";
+      thumb.href = youtubeSearchUrl(v);
+      if (v.thumbnailUrl) {
+        const img = document.createElement("img");
+        img.src = v.thumbnailUrl;
+        img.alt = v.title;
+        thumb.appendChild(img);
+      } else {
+        thumb.style.background = CATEGORY_BG[v.category];
+        thumb.textContent = CATEGORY_ICON[v.category];
+      }
+
+      const tagRow = document.createElement("div");
+      tagRow.className = "tag-row";
+
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.style.color = cat.color;
+      tag.style.background = cat.bg;
+      tag.textContent = cat.label;
+      tagRow.appendChild(tag);
+
+      const title = document.createElement("a");
+      title.className = "title";
+      title.textContent = v.title;
+      title.target = "_blank";
+      title.rel = "noopener";
+      title.href = youtubeSearchUrl(v);
+
+      const channel = document.createElement("div");
+      channel.className = "channel";
+      channel.textContent = v.subs ? `${v.channel} · 구독자 ${formatCount(v.subs)}명` : `${v.channel} · 구독자 비공개`;
+
+      const metaRow = document.createElement("div");
+      metaRow.className = "meta-row";
+
+      const viewsStat = document.createElement("span");
+      viewsStat.className = "stat" + (state.sort === "views" ? " highlight" : "");
+      viewsStat.textContent = `조회수 ${formatCount(v.views)}회`;
+
+      const ratioStat = document.createElement("span");
+      ratioStat.className = "stat" + (state.sort === "ratio" ? " highlight" : "");
+      ratioStat.textContent = v.subs ? `구독자 대비 ${v.ratio.toFixed(1)}배` : "구독자 비공개";
+
+      const timeAgo = document.createElement("span");
+      timeAgo.className = "time-ago";
+      timeAgo.textContent = `${v.hoursAgo}시간 전`;
+
+      metaRow.appendChild(viewsStat);
+      metaRow.appendChild(ratioStat);
+      metaRow.appendChild(timeAgo);
+
+      if (isTop3) {
+        const body = document.createElement("div");
+        body.className = "body";
+        body.appendChild(tagRow);
+        body.appendChild(title);
+        body.appendChild(channel);
+        body.appendChild(metaRow);
+
+        card.appendChild(rankEl);
+        card.appendChild(thumb);
+        card.appendChild(body);
+      } else {
+        const info = document.createElement("div");
+        info.className = "info";
+        info.appendChild(tagRow);
+        info.appendChild(title);
+        info.appendChild(channel);
+        info.appendChild(metaRow);
+
+        card.appendChild(rankEl);
+        card.appendChild(thumb);
+        card.appendChild(info);
+      }
+      list.appendChild(card);
+    });
+  }
+
+  function renderSummary() {
+    const bar = document.getElementById("summaryBar");
+    bar.innerHTML = "";
+
+    const scoped = VIDEOS.filter(v => state.category === "all" || v.category === state.category);
+    if (scoped.length === 0) return;
+
+    const topViews = scoped.reduce((max, v) => (v.views > max.views ? v : max), scoped[0]);
+    const topRatio = scoped.reduce((max, v) => (v.ratio > max.ratio ? v : max), scoped[0]);
+
+    const items = [
+      { label: "최고 조회수", value: `${formatCount(topViews.views)}회`, sub: topViews.channel },
+      { label: "최고 떡상지수", value: `${topRatio.ratio.toFixed(1)}배`, sub: topRatio.channel }
+    ];
+
+    items.forEach(item => {
+      const box = document.createElement("div");
+      box.className = "summary-item";
+
+      const value = document.createElement("div");
+      value.className = "summary-value";
+      value.textContent = item.value;
+
+      const label = document.createElement("div");
+      label.className = "summary-label";
+      label.textContent = item.label;
+
+      const sub = document.createElement("div");
+      sub.className = "summary-sub";
+      sub.textContent = item.sub;
+
+      box.appendChild(label);
+      box.appendChild(value);
+      box.appendChild(sub);
+      bar.appendChild(box);
+    });
+  }
+
+  function renderToday() {
+    const nowKst = new Date(Date.now() + KST_OFFSET_MS);
+    const label = `${nowKst.getUTCFullYear()}. ${nowKst.getUTCMonth() + 1}. ${nowKst.getUTCDate()} 업로드 기준`;
+    document.getElementById("todayLabel").textContent = label;
+
+    const isTodayOnlyMode = nowKst.getUTCHours() >= TODAY_ONLY_START_HOUR_KST;
+    const rangeText = isTodayOnlyMode ? "오늘 업로드된 영상만" : "최근 24시간 이내 업로드된 영상 (오전 11시 이후 오늘자 업로드만으로 전환)";
+    document.getElementById("noteText").textContent =
+      `${rangeText} · 한국(KR) 기준 실시간 데이터 · 썸네일이나 제목을 누르면 유튜브 검색 결과가 열립니다`;
+  }
+
+  renderToday();
+  renderCategoryChips();
+  renderSortButtons();
+
+  const apiKeyInput = document.getElementById("apiKeyInput");
+  apiKeyInput.value = getStoredApiKey();
+  const submitApiKey = () => {
+    saveApiKey(apiKeyInput.value.trim());
+    loadAllVideos();
+  };
+  document.getElementById("apiKeySaveBtn").addEventListener("click", submitApiKey);
+  apiKeyInput.addEventListener("keydown", e => {
+    if (e.key === "Enter") submitApiKey();
+  });
+
+  loadAllVideos();
+</script>
+</body>
+</html>

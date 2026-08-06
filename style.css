@@ -72,7 +72,7 @@ h1 {
 .date-tag {
   font-size: 13px;
   font-weight: bold;
-  color: #2f6feb;
+  color: #b03a63;
   min-height: 18px;
 }
 
@@ -118,12 +118,12 @@ body.viewing-past .item { background: #fffdf3; }
   padding: 12px 18px;
   border: none;
   border-radius: 10px;
-  background: #2f6feb;
+  background: #b03a63;
   color: white;
   cursor: pointer;
   white-space: nowrap;
 }
-.add-box button:active { background: #1e54c2; }
+.add-box button:active { background: #963053; }
 
 
 /* --------------------------------------------------
@@ -242,8 +242,10 @@ body.viewing-past .item { background: #fffdf3; }
 .day-cell.miss   { background: #e0e4ea; }              /* 안 한 날 */
 .day-cell.future { background: transparent;            /* 아직 안 온 날 */
                    border-color: #d3d8e0; }
-.day-cell.is-selected {                                /* 지금 보고 있는 날 */
-  outline: 2px solid #2f6feb;
+/* 지금 보고 있는 날. 분홍 네모 위에서도 보여야 해서 진한 자주색을 씁니다
+   (연분홍으로 하면 체크한 날 위에서 테두리가 안 보입니다) */
+.day-cell.is-selected {
+  outline: 2px solid #6b2340;
   outline-offset: 1px;
 }
 

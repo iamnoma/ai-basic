@@ -313,10 +313,23 @@
     padding: 40px 0;
     font-size: 14px;
   }
+
+  .home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #2f6feb;
+    text-decoration: none;
+    margin-bottom: 6px;
+  }
+  .home-link:active { opacity: 0.6; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a class="home-link" href="../index.html">‹ 도구함</a>
   <h1>🔥 오늘의 유튜브 떡상 체크</h1>
   <div class="today" id="todayLabel"></div>
   <div class="note" id="noteText"></div>

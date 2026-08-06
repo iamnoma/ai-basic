@@ -251,10 +251,23 @@
     td.num { text-align: left; }
     .del-cell { justify-content: flex-end; }
   }
+
+  .home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--accent);
+    text-decoration: none;
+    margin-bottom: 14px;
+  }
+  .home-link:active { opacity: 0.6; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a class="home-link" href="../index.html">‹ 도구함</a>
   <div class="title-row">
     <svg class="icon" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></svg>
     <h1>내 사이트 목록</h1>

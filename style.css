@@ -11,10 +11,26 @@ button, input, textarea { font-family: inherit; }
 html, body {
   margin: 0;
   padding: 0;
-  background: #f2f4f7;
   font-family: "Wanted Sans", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   font-size: 16px;
   color: #222;
+}
+
+/* 배경은 body 에만 줍니다.
+   그래야 지난 날 모드에서 화면 전체 색이 바뀝니다 */
+body {
+  background: #f2f4f7;
+  min-height: 100vh;
+  transition: background 0.2s;
+}
+
+/* 버튼을 키보드로 이동했을 때 나오는 테두리 (기본 검정 대신 분홍) */
+.nav-btn:focus-visible,
+.add-box button:focus-visible,
+.back-today-btn:focus-visible,
+.item .del-btn:focus-visible {
+  outline: 2px solid #b03a63;
+  outline-offset: 2px;
 }
 
 .wrap {
@@ -59,6 +75,19 @@ h1 {
   cursor: default;
 }
 
+/* 라인 형태 화살표. stroke: currentColor 라서 버튼 글자색을 따라갑니다 */
+.nav-btn svg {
+  display: block;
+  margin: 0 auto;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .date-center {
   min-width: 200px;
   text-align: center;
@@ -83,15 +112,30 @@ h1 {
   padding: 10px 16px;
   border: none;
   border-radius: 10px;
-  background: #ffe9a8;
-  color: #7a5a00;
+  background: #6b3fa0;
+  color: white;
   cursor: pointer;
 }
+.back-today-btn:active { background: #573380; }
 
-/* 과거 날짜를 보고 있을 때만 나타납니다 */
+/* --------------------------------------------------
+   지난 날을 보고 있을 때 (보라 모드)
+   오늘 화면과 확실히 구분되도록 화면 전체 색을 바꿉니다
+   -------------------------------------------------- */
+
+body.viewing-past { background: #f1eafb; }          /* 페이지 배경 */
 body.viewing-past .back-today-btn { display: block; }
-body.viewing-past .date-tag { color: #b07800; }
-body.viewing-past .item { background: #fffdf3; }
+body.viewing-past .date-tag { color: #6b3fa0; }     /* "지난 날 채우는 중" 글씨 */
+body.viewing-past .item {
+  background: #fbf8ff;                              /* 카드 */
+  box-shadow: 0 2px 6px rgba(80, 40, 130, 0.14);
+}
+body.viewing-past .nav-btn {                        /* 화살표 버튼 */
+  background: #e3d8f5;
+  color: #55307f;
+}
+body.viewing-past .nav-btn:active { background: #d3c3ed; }
+body.viewing-past .item-main:active { background: #f2ecfb; }
 
 
 /* --------------------------------------------------

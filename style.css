@@ -1,0 +1,271 @@
+/* ===================================================
+   매일 체크리스트 - 디자인
+   색깔, 크기, 배치를 바꾸고 싶으면 이 파일만 고치면 됩니다.
+   =================================================== */
+
+* { box-sizing: border-box; }
+
+/* 버튼과 입력창은 글꼴을 저절로 물려받지 않아서 따로 지정합니다 */
+button, input, textarea { font-family: inherit; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #f2f4f7;
+  font-family: "Wanted Sans", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-size: 16px;
+  color: #222;
+}
+
+.wrap {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+
+h1 {
+  font-size: 24px;
+  text-align: center;
+  margin: 10px 0 4px;
+}
+
+
+/* --------------------------------------------------
+   날짜 이동 줄 (◀ 8월 5일 ▶)
+   -------------------------------------------------- */
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.nav-btn {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  background: #e7eaef;
+  color: #444;
+  cursor: pointer;
+}
+.nav-btn:active { background: #d5d9e0; }
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.date-center {
+  min-width: 200px;
+  text-align: center;
+}
+
+.today {
+  font-size: 15px;
+  color: #555;
+}
+
+.date-tag {
+  font-size: 13px;
+  font-weight: bold;
+  color: #2f6feb;
+  min-height: 18px;
+}
+
+.back-today-btn {
+  display: none;
+  margin: 0 auto 12px;
+  font-size: 14px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: #ffe9a8;
+  color: #7a5a00;
+  cursor: pointer;
+}
+
+/* 과거 날짜를 보고 있을 때만 나타납니다 */
+body.viewing-past .back-today-btn { display: block; }
+body.viewing-past .date-tag { color: #b07800; }
+body.viewing-past .item { background: #fffdf3; }
+
+
+/* --------------------------------------------------
+   항목 추가 줄
+   -------------------------------------------------- */
+
+.add-box {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  margin-bottom: 24px;
+}
+
+.add-box input[type="text"] {
+  flex: 1;
+  font-size: 16px;
+  padding: 12px;
+  border: 2px solid #ccc;
+  border-radius: 10px;
+}
+
+.add-box button {
+  font-size: 16px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  background: #2f6feb;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.add-box button:active { background: #1e54c2; }
+
+
+/* --------------------------------------------------
+   항목 카드
+   -------------------------------------------------- */
+
+.item {
+  background: white;
+  border-radius: 14px;
+  padding: 8px 12px 12px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 카드에서 이 부분(체크박스+이름+횟수) 어디를 눌러도 체크됩니다 */
+.item-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  padding: 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.item-main:active { background: #f0f2f5; }
+
+.item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+}
+/* 체크했을 때만 분홍 네모 + 흰 체크 표시로 바꿔 그립니다 */
+.item input[type="checkbox"]:checked {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #ff7fac;
+  border-radius: 5px;
+}
+.item input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.item .name {
+  flex: 1;
+  font-size: 17px;
+  word-break: break-all;
+}
+.item.done .name {
+  color: #999;
+  text-decoration: line-through;
+}
+
+.item .month-count {
+  font-size: 13px;
+  background: #ffe9f0;
+  color: #c2426f;
+  padding: 6px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.item .del-btn {
+  font-size: 16px;
+  background: #ffecec;
+  color: #e33;
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.item .del-btn:active { background: #ffd6d6; }
+
+
+/* --------------------------------------------------
+   한 달치 네모 줄 (보기 전용)
+   --cols(한 줄), --cols-half(두 줄로 나눌 때) 값은 app.js 가 넣어줍니다
+   -------------------------------------------------- */
+
+.month-strip {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  column-gap: 2px;
+  row-gap: 3px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.day-cell {
+  min-width: 0;
+  aspect-ratio: 1 / 1;
+  border-radius: 2px;
+  border: 1px solid transparent;
+}
+.day-cell.done   { background: #ff7fac; }              /* 체크한 날 */
+.day-cell.miss   { background: #e0e4ea; }              /* 안 한 날 */
+.day-cell.future { background: transparent;            /* 아직 안 온 날 */
+                   border-color: #d3d8e0; }
+.day-cell.is-selected {                                /* 지금 보고 있는 날 */
+  outline: 2px solid #2f6feb;
+  outline-offset: 1px;
+}
+
+
+/* --------------------------------------------------
+   기타
+   -------------------------------------------------- */
+
+.empty {
+  text-align: center;
+  color: #999;
+  font-size: 18px;
+  margin-top: 40px;
+}
+
+/* 화면이 좁아 네모가 너무 작아지면 두 줄로 나눕니다 */
+@media (max-width: 460px) {
+  .month-strip { grid-template-columns: repeat(var(--cols-half), 1fr); }
+}
+
+@media (max-width: 400px) {
+  body { font-size: 15px; }
+  h1 { font-size: 22px; }
+  .item .name { font-size: 16px; }
+}

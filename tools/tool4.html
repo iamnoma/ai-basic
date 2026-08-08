@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>장보기 예산 지킴이</title>
+
+<!-- 폰 홈 화면에 추가했을 때 예쁘게 보이도록 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="장보기 예산 지킴이">
+<meta name="theme-color" content="#f2f4f7">
+
+<!-- Wanted Sans 글꼴 (설치 필요 없음, 인터넷에서 자동으로 받아옵니다) -->
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/wanted-sans@1.0.3/fonts/webfonts/static/split/WantedSans.css">
+
+<style>
+  * { box-sizing: border-box; }
+  button, input { font-family: inherit; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #f2f4f7;
+    font-family: "Wanted Sans", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+    color: #222;
+  }
+
+  .wrap {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  .home-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 13px;
+    font-weight: bold;
+    color: #b03a63;
+    text-decoration: none;
+    margin-bottom: 10px;
+  }
+  .home-link:active { opacity: 0.6; }
+
+  h1 {
+    font-size: 26px;
+    text-align: center;
+    margin: 6px 0 4px;
+  }
+
+  .sub {
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+
+  /* 공통 카드 */
+  .card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 10px rgba(20, 20, 40, 0.06);
+    border: 1px solid #eceef2;
+  }
+
+  /* 예산 입력 카드 */
+  .budget-label {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .budget-set-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .budget-set-row input {
+    flex: 1;
+    font-size: 20px;
+    padding: 14px;
+    border: 2px solid #e0c9e8;
+    border-radius: 12px;
+    min-height: 52px;
+  }
+  .unit {
+    font-size: 16px;
+    color: #777;
+    white-space: nowrap;
+  }
+
+  .big-btn {
+    display: block;
+    width: 100%;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 16px;
+    min-height: 54px;
+    border: none;
+    border-radius: 14px;
+    color: white;
+    background: linear-gradient(135deg, #ff7fac, #b06cf0);
+    cursor: pointer;
+  }
+  .big-btn:active { filter: brightness(0.92); }
+
+  /* 남은 예산 카드 */
+  .remain-card {
+    text-align: center;
+  }
+  .remain-label {
+    font-size: 15px;
+    color: #888;
+    margin: 0 0 6px;
+  }
+  .remain-amount {
+    font-size: 44px;
+    font-weight: 900;
+    color: #7a3fae;
+    margin: 0 0 6px;
+    line-height: 1.2;
+    word-break: keep-all;
+  }
+  .remain-amount.over {
+    color: #e0342a;
+  }
+  .over-msg {
+    font-size: 14px;
+    font-weight: bold;
+    color: #e0342a;
+    min-height: 18px;
+    margin: 0 0 10px;
+  }
+  .budget-sub-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #999;
+    flex-wrap: wrap;
+  }
+  .text-btn {
+    background: none;
+    border: none;
+    color: #b06cf0;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px;
+    text-decoration: underline;
+  }
+
+  /* 물건 추가 카드 */
+  .add-row {
+    margin-bottom: 10px;
+  }
+  .add-row-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .add-card input[type="text"] {
+    width: 100%;
+    font-size: 17px;
+    padding: 14px;
+    border: 2px solid #ccc;
+    border-radius: 12px;
+    min-height: 50px;
+  }
+  .add-card .pink {
+    margin-top: 6px;
+  }
+
+  /* 담은 물건 목록 */
+  .item {
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .item .name {
+    flex: 1;
+    font-size: 17px;
+    word-break: break-all;
+  }
+  .item .price {
+    font-size: 17px;
+    font-weight: bold;
+    color: #444;
+    white-space: nowrap;
+  }
+  .item .del-btn {
+    font-size: 16px;
+    background: #ffecec;
+    color: #e33;
+    border: none;
+    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .item .del-btn:active { background: #ffd6d6; }
+
+  .empty {
+    text-align: center;
+    color: #999;
+    font-size: 16px;
+    margin: 24px 0;
+  }
+
+  .reset-btn {
+    display: block;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 15px;
+    padding: 14px;
+    min-height: 48px;
+    border: none;
+    border-radius: 12px;
+    background: #e7eaef;
+    color: #666;
+    cursor: pointer;
+  }
+  .reset-btn:active { background: #d5d9e0; }
+
+  @media (max-width: 380px) {
+    .remain-amount { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a class="home-link" href="../index.html">‹ 도구함</a>
+  <h1>🛒 장보기 예산 지킴이</h1>
+  <p class="sub">오늘 예산을 정하고, 담을 때마다 하나씩 추가해보세요</p>
+
+  <!-- 예산 정하기 -->
+  <div class="card" id="budgetSetCard">
+    <label class="budget-label" for="budgetInput">오늘 예산은 얼마인가요?</label>
+    <div class="budget-set-row">
+      <input type="text" inputmode="numeric" id="budgetInput" placeholder="예: 50,000">
+      <span class="unit">원</span>
+    </div>
+    <button class="big-btn" id="setBudgetBtn">예산 정하기</button>
+  </div>
+
+  <!-- 남은 예산 -->
+  <div class="card remain-card" id="remainCard" style="display:none;">
+    <p class="remain-label">남은 예산</p>
+    <p class="remain-amount" id="remainAmount">0원</p>
+    <p class="over-msg" id="overMsg"></p>
+    <div class="budget-sub-row">
+      <span id="budgetSummary"></span>
+      <button class="text-btn" id="editBudgetBtn">예산 다시 정하기</button>
+    </div>
+  </div>
+
+  <!-- 물건 추가 -->
+  <div class="card add-card" id="addCard" style="display:none;">
+    <div class="add-row">
+      <input type="text" id="itemNameInput" placeholder="물건 이름 (예: 우유)">
+    </div>
+    <div class="add-row">
+      <div class="add-row-inner">
+        <input type="text" inputmode="numeric" id="itemPriceInput" placeholder="가격 (예: 3,200)">
+        <span class="unit">원</span>
+      </div>
+    </div>
+    <button class="big-btn pink" id="addItemBtn">담기 추가</button>
+  </div>
+
+  <div id="itemList"></div>
+  <p class="empty" id="emptyMsg" style="display:none;">아직 담은 물건이 없어요</p>
+
+  <button class="reset-btn" id="resetBtn" style="display:none;">🔄 오늘 목록 새로 시작</button>
+
+</div>
+
+<script>
+  const STORAGE_KEY = "groceryBudgetData";
+
+  function formatDateKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+  function getTodayKey() {
+    return formatDateKey(new Date());
+  }
+  function formatWon(n) {
+    return n.toLocaleString("ko-KR") + "원";
+  }
+  // 입력창에 숫자만 남기고 천 단위 쉼표를 붙여줍니다
+  function getNumberValue(el) {
+    return Number(el.value.replace(/[^0-9]/g, "")) || 0;
+  }
+  function bindCommaInput(el) {
+    el.addEventListener("input", () => {
+      const digits = el.value.replace(/[^0-9]/g, "");
+      el.value = digits ? Number(digits).toLocaleString("ko-KR") : "";
+    });
+  }
+
+  function loadData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        // 날짜가 바뀌었으면(자정 지남) 새 장보기로 다시 시작합니다
+        if (parsed.date === getTodayKey()) return parsed;
+      } catch (e) { /* 저장된 값이 이상하면 새로 시작 */ }
+    }
+    return { date: getTodayKey(), budget: 0, items: [] };
+  }
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let data = loadData();
+  let editingBudget = (data.budget === 0);
+
+  const budgetSetCard = document.getElementById("budgetSetCard");
+  const remainCard = document.getElementById("remainCard");
+  const addCard = document.getElementById("addCard");
+  const itemListEl = document.getElementById("itemList");
+  const emptyMsg = document.getElementById("emptyMsg");
+  const resetBtn = document.getElementById("resetBtn");
+  const budgetInput = document.getElementById("budgetInput");
+  const itemNameInput = document.getElementById("itemNameInput");
+  const itemPriceInput = document.getElementById("itemPriceInput");
+
+  bindCommaInput(budgetInput);
+  bindCommaInput(itemPriceInput);
+
+  function render() {
+    const hasBudget = data.budget > 0;
+
+    budgetSetCard.style.display = (!hasBudget || editingBudget) ? "block" : "none";
+    remainCard.style.display = (hasBudget && !editingBudget) ? "block" : "none";
+    addCard.style.display = hasBudget ? "block" : "none";
+    resetBtn.style.display = (hasBudget || data.items.length > 0) ? "block" : "none";
+
+    if (hasBudget && !editingBudget) {
+      const spent = data.items.reduce((sum, it) => sum + it.price, 0);
+      const remain = data.budget - spent;
+
+      const remainAmountEl = document.getElementById("remainAmount");
+      remainAmountEl.textContent = formatWon(remain);
+      remainAmountEl.classList.toggle("over", remain < 0);
+
+      document.getElementById("overMsg").textContent =
+        remain < 0 ? `예산을 ${formatWon(Math.abs(remain))} 초과했어요!` : "";
+
+      document.getElementById("budgetSummary").textContent =
+        `예산 ${formatWon(data.budget)} · 사용 ${formatWon(spent)}`;
+    }
+
+    itemListEl.style.display = hasBudget ? "block" : "none";
+    emptyMsg.style.display = (hasBudget && data.items.length === 0) ? "block" : "none";
+    renderList();
+  }
+
+  function renderList() {
+    itemListEl.innerHTML = "";
+    if (data.budget === 0) return;
+
+    data.items.forEach(item => {
+      const row = document.createElement("div");
+      row.className = "item";
+
+      const nameSpan = document.createElement("div");
+      nameSpan.className = "name";
+      nameSpan.textContent = item.name;
+
+      const priceSpan = document.createElement("div");
+      priceSpan.className = "price";
+      priceSpan.textContent = formatWon(item.price);
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "del-btn";
+      delBtn.textContent = "×";
+      delBtn.title = "삭제";
+      delBtn.addEventListener("click", () => {
+        data.items = data.items.filter(it => it.id !== item.id);
+        saveData();
+        render();
+      });
+
+      row.appendChild(nameSpan);
+      row.appendChild(priceSpan);
+      row.appendChild(delBtn);
+      itemListEl.appendChild(row);
+    });
+  }
+
+  document.getElementById("setBudgetBtn").addEventListener("click", () => {
+    const value = getNumberValue(budgetInput);
+    if (value <= 0) {
+      alert("예산을 입력해주세요.");
+      return;
+    }
+    data.budget = value;
+    editingBudget = false;
+    saveData();
+    budgetInput.value = "";
+    render();
+  });
+
+  budgetInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("setBudgetBtn").click();
+  });
+
+  document.getElementById("editBudgetBtn").addEventListener("click", () => {
+    editingBudget = true;
+    budgetInput.value = data.budget.toLocaleString("ko-KR");
+    render();
+    budgetInput.focus();
+    budgetInput.select();
+  });
+
+  document.getElementById("addItemBtn").addEventListener("click", () => {
+    const name = itemNameInput.value.trim();
+    const price = getNumberValue(itemPriceInput);
+    if (!name) {
+      alert("물건 이름을 입력해주세요.");
+      itemNameInput.focus();
+      return;
+    }
+    if (price <= 0) {
+      alert("가격을 입력해주세요.");
+      itemPriceInput.focus();
+      return;
+    }
+    const id = "item_" + Date.now() + "_" + Math.floor(Math.random() * 1000);
+    data.items.push({ id, name, price });
+    saveData();
+    itemNameInput.value = "";
+    itemPriceInput.value = "";
+    render();
+    // 엔터 누르자마자 바로 포커스를 옮기면 한글 입력기가 영어로 풀리는 경우가 있어 살짝 늦춰줍니다
+    setTimeout(() => itemNameInput.focus(), 0);
+  });
+
+  itemNameInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") itemPriceInput.focus();
+  });
+  itemPriceInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("addItemBtn").click();
+  });
+
+  resetBtn.addEventListener("click", () => {
+    if (!confirm("오늘 목록을 새로 시작할까요? 지금까지 담은 물건이 모두 사라져요.")) return;
+    data = { date: getTodayKey(), budget: 0, items: [] };
+    editingBudget = true;
+    saveData();
+    render();
+    budgetInput.focus();
+  });
+
+  render();
+</script>
+</body>
+</html>
